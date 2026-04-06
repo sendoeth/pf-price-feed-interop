@@ -1,11 +1,21 @@
 {
   "case_id": "PFQ-004",
-  "title": "No exact observation — linear interpolation between neighbors",
+  "title": "No exact observation \u2014 linear interpolation between neighbors",
   "description": "No source has an observation at the requested timestamp. Two neighboring observations from the same source bracket the target but are both stale. stale_action=interpolate triggers linear interpolation with confidence penalty.",
   "policy_overrides": {
-    "staleness": { "max_staleness_seconds": 1800, "stale_action": "interpolate" },
-    "interpolation": { "enabled": true, "method": "linear", "max_gap_seconds": 14400, "confidence_penalty": 0.5 },
-    "tolerance": { "max_deviation_percent": 5.0 }
+    "staleness": {
+      "max_staleness_seconds": 1800,
+      "stale_action": "interpolate"
+    },
+    "interpolation": {
+      "enabled": true,
+      "method": "linear",
+      "max_gap_seconds": 14400,
+      "confidence_penalty": 0.5
+    },
+    "tolerance": {
+      "max_deviation_percent": 5.0
+    }
   },
   "input": {
     "requested_symbol": "LINK",
@@ -15,28 +25,42 @@
         "quote_id": "q-004-a",
         "symbol": "LINK",
         "timestamp": "2026-04-01T11:00:00Z",
-        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
-        "price": 14.20,
+        "source": {
+          "source_id": "coingecko",
+          "source_type": "aggregator",
+          "priority": 1
+        },
+        "price": 14.2,
         "confidence": 0.95,
         "staleness_seconds": 3600,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "78897dc4529640579de9e542d3680785eb272651f1d6c56d789b20222dfe44ba",
+        "source_tier": "tier_2_aggregator",
+        "feed_version": "1.0.0"
       },
       {
         "quote_id": "q-004-b",
         "symbol": "LINK",
         "timestamp": "2026-04-01T13:00:00Z",
-        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
-        "price": 14.60,
+        "source": {
+          "source_id": "coingecko",
+          "source_type": "aggregator",
+          "priority": 1
+        },
+        "price": 14.6,
         "confidence": 0.95,
         "staleness_seconds": 3600,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "7eaad03986ae256b5887da2a969dcbb379882b2e0e8313ad68fc841d4395285e",
+        "source_tier": "tier_2_aggregator",
+        "feed_version": "1.0.0"
       }
     ]
   },
   "expected": {
-    "resolved_price": 14.40,
+    "resolved_price": 14.4,
     "resolved_source_id": "coingecko",
     "resolution_method": "interpolated",
     "staleness_seconds": 0,

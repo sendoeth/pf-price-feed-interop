@@ -1,10 +1,15 @@
 {
   "case_id": "PFQ-003",
-  "title": "All sources stale — rejection via stale_action=reject",
-  "description": "Policy configured with stale_action=reject. Both available sources exceed staleness window. Resolution rejects entirely — no fallback, no interpolation.",
+  "title": "All sources stale \u2014 rejection via stale_action=reject",
+  "description": "Policy configured with stale_action=reject. Both available sources exceed staleness window. Resolution rejects entirely \u2014 no fallback, no interpolation.",
   "policy_overrides": {
-    "staleness": { "max_staleness_seconds": 3600, "stale_action": "reject" },
-    "tolerance": { "max_deviation_percent": 2.0 }
+    "staleness": {
+      "max_staleness_seconds": 3600,
+      "stale_action": "reject"
+    },
+    "tolerance": {
+      "max_deviation_percent": 2.0
+    }
   },
   "input": {
     "requested_symbol": "SOL",
@@ -14,23 +19,37 @@
         "quote_id": "q-003-a",
         "symbol": "SOL",
         "timestamp": "2026-04-01T06:00:00Z",
-        "source": { "source_id": "binance_spot", "source_type": "exchange_direct", "priority": 0 },
-        "price": 125.40,
+        "source": {
+          "source_id": "binance_spot",
+          "source_type": "exchange_direct",
+          "priority": 0
+        },
+        "price": 125.4,
         "confidence": 1.0,
         "staleness_seconds": 21600,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "fb01409e0d7ebcff852cc7cf94093cccc764da661e482aa9d7a4e44f63c97cec",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0"
       },
       {
         "quote_id": "q-003-b",
         "symbol": "SOL",
         "timestamp": "2026-04-01T07:30:00Z",
-        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
-        "price": 126.10,
+        "source": {
+          "source_id": "coingecko",
+          "source_type": "aggregator",
+          "priority": 1
+        },
+        "price": 126.1,
         "confidence": 0.95,
         "staleness_seconds": 16200,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "546526ef788e6d72bb469e8388b735c96c92b96e6236b509ab8f59fec774d9e9",
+        "source_tier": "tier_2_aggregator",
+        "feed_version": "1.0.0"
       }
     ]
   },

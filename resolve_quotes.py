@@ -64,12 +64,26 @@ DEFAULT_POLICY = {
     }
 }
 
-RESOLUTION_STATUSES = {"RESOLVED", "RESOLVED_DISPUTE", "UNRESOLVED"}
+RESOLUTION_STATUSES = {"RESOLVED", "RESOLVED_DISPUTE", "UNRESOLVED", "CONTESTED"}
 RESOLUTION_METHODS = {
     "first_valid", "fallback_source", "interpolated", "rejected",
     "dispute_median", "median_of_top_n", "weighted_average",
     "mark_unresolved", "use_last_known"
 }
+
+FEED_VERSION = "1.0.0"
+
+SOURCE_TIER_MAP = {
+    "exchange_direct": "tier_1_exchange",
+    "aggregator": "tier_2_aggregator",
+    "api_provider": "tier_3_api",
+    "manual": "tier_4_manual",
+    "interpolated": "tier_5_interpolated"
+}
+
+# 24h attribution path: the canonical window for signal outcome resolution
+ATTRIBUTION_WINDOW_HOURS = 24
+ATTRIBUTION_WINDOW_SECONDS = ATTRIBUTION_WINDOW_HOURS * 3600
 
 # ---------------------------------------------------------------------------
 # Utility: ISO-8601 timestamp parsing
@@ -92,6 +106,26 @@ def timestamp_diff_seconds(ts1_str, ts2_str):
 # ---------------------------------------------------------------------------
 # Attestation: SHA-256 hash chain
 # ---------------------------------------------------------------------------
+
+def derive_source_tier(source_type):
+    """Map source_type to source_tier label."""
+    return SOURCE_TIER_MAP.get(source_type, "tier_3_api")
+
+
+def enrich_quote(quote):
+    """Add attestation_hash, source_tier, feed_version to a quote if missing."""
+    if "attestation_hash" not in quote:
+        quote["attestation_hash"] = compute_quote_hash(
+            quote["quote_id"], quote["symbol"], quote["timestamp"],
+            quote["source"]["source_id"], quote["price"],
+            quote.get("confidence", 1.0)
+        )
+    if "source_tier" not in quote:
+        quote["source_tier"] = derive_source_tier(quote["source"]["source_type"])
+    if "feed_version" not in quote:
+        quote["feed_version"] = FEED_VERSION
+    return quote
+
 
 def compute_quote_hash(quote_id, symbol, timestamp, source_id, price, confidence):
     """Compute SHA-256 hash of canonical quote fields.
@@ -836,7 +870,9 @@ def generate_attestation_example():
         "confidence": 1.0,
         "staleness_seconds": 0,
         "interpolated": False,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "source_tier": "tier_1_exchange",
+        "feed_version": FEED_VERSION
     }
     q2 = {
         "quote_id": "attest-002",
@@ -847,8 +883,13 @@ def generate_attestation_example():
         "confidence": 1.0,
         "staleness_seconds": 0,
         "interpolated": False,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "source_tier": "tier_1_exchange",
+        "feed_version": FEED_VERSION
     }
+    # Enrich with attestation_hash
+    enrich_quote(q1)
+    enrich_quote(q2)
 
     chain = build_attestation_chain([q1, q2], chain_id="btc_binance")
 
@@ -878,7 +919,8 @@ def validate_quote(quote):
     Lightweight validation — no jsonschema dependency.
     """
     errors = []
-    required = ["quote_id", "symbol", "timestamp", "source", "price", "confidence"]
+    required = ["quote_id", "symbol", "timestamp", "source", "price", "confidence",
+                "attestation_hash", "source_tier", "feed_version"]
     for field in required:
         if field not in quote:
             errors.append(f"Missing required field: {field}")
@@ -909,6 +951,22 @@ def validate_quote(quote):
                            "manual", "interpolated"}
             if src.get("source_type") not in valid_types:
                 errors.append(f"Invalid source_type: {src.get('source_type')}")
+
+    if "attestation_hash" in quote:
+        import re
+        if not re.match(r"^[a-f0-9]{64}$", str(quote["attestation_hash"])):
+            errors.append(f"Invalid attestation_hash format: {quote['attestation_hash']}")
+
+    if "source_tier" in quote:
+        valid_tiers = {"tier_1_exchange", "tier_2_aggregator", "tier_3_api",
+                       "tier_4_manual", "tier_5_interpolated"}
+        if quote["source_tier"] not in valid_tiers:
+            errors.append(f"Invalid source_tier: {quote['source_tier']}")
+
+    if "feed_version" in quote:
+        import re
+        if not re.match(r"^[0-9]+\.[0-9]+\.[0-9]+$", str(quote["feed_version"])):
+            errors.append(f"Invalid feed_version format: {quote['feed_version']}")
 
     if "attestation" in quote and quote["attestation"] is not None:
         att = quote["attestation"]

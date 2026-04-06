@@ -1,11 +1,25 @@
 {
   "case_id": "PFQ-007",
-  "title": "Interpolation gap exceeds max — fallback to mark_unresolved",
+  "title": "Interpolation gap exceeds max \u2014 fallback to mark_unresolved",
   "description": "Neighboring observations are too far apart for interpolation (gap > max_gap_seconds). Dispute fallback chain exhausts to mark_unresolved. Tests the terminal failure path.",
   "policy_overrides": {
-    "staleness": { "max_staleness_seconds": 7200, "stale_action": "interpolate" },
-    "interpolation": { "enabled": true, "method": "linear", "max_gap_seconds": 3600, "confidence_penalty": 0.5 },
-    "dispute": { "fallback_chain": ["interpolate", "mark_unresolved"], "unresolved_action": "skip_signal" }
+    "staleness": {
+      "max_staleness_seconds": 7200,
+      "stale_action": "interpolate"
+    },
+    "interpolation": {
+      "enabled": true,
+      "method": "linear",
+      "max_gap_seconds": 3600,
+      "confidence_penalty": 0.5
+    },
+    "dispute": {
+      "fallback_chain": [
+        "interpolate",
+        "mark_unresolved"
+      ],
+      "unresolved_action": "skip_signal"
+    }
   },
   "input": {
     "requested_symbol": "SOL",
@@ -15,23 +29,37 @@
         "quote_id": "q-007-a",
         "symbol": "SOL",
         "timestamp": "2026-04-01T08:00:00Z",
-        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
-        "price": 124.50,
+        "source": {
+          "source_id": "coingecko",
+          "source_type": "aggregator",
+          "priority": 1
+        },
+        "price": 124.5,
         "confidence": 0.95,
         "staleness_seconds": 14400,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "5788207b65ee9f6159137388c0ebf31cb8c603da8969e7eae392a1e837d5660c",
+        "source_tier": "tier_2_aggregator",
+        "feed_version": "1.0.0"
       },
       {
         "quote_id": "q-007-b",
         "symbol": "SOL",
         "timestamp": "2026-04-01T16:00:00Z",
-        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
-        "price": 127.80,
+        "source": {
+          "source_id": "coingecko",
+          "source_type": "aggregator",
+          "priority": 1
+        },
+        "price": 127.8,
         "confidence": 0.95,
         "staleness_seconds": 14400,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "62cb859d9e4bc13af64c6b4f27281da6a9779e7aa330825b2f3ffcd8fb179758",
+        "source_tier": "tier_2_aggregator",
+        "feed_version": "1.0.0"
       }
     ]
   },

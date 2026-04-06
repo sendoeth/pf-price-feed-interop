@@ -2,12 +2,28 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/sendoeth/pf-price-feed-interop/resolution_policy.json",
   "title": "Post Fiat Canonical Price Resolution Policy",
-  "description": "Deterministic rules for resolving a (symbol, timestamp) pair to a single canonical price. Eliminates private interpretation by defining source hierarchy, staleness, tolerance, interpolation, and dispute fallback.",
+  "description": "Deterministic rules for resolving a (symbol, timestamp) pair to a single canonical price on a 24-hour attribution path. Eliminates private interpretation by defining source hierarchy, staleness, tolerance, interpolation, and dispute fallback. Every signal emitted at time T is resolved against the price at T+24h using these rules.",
   "type": "object",
-  "required": ["policy_version", "source_hierarchy", "staleness", "tolerance", "interpolation", "dispute"],
+  "required": ["policy_version", "attribution_path", "source_hierarchy", "staleness", "tolerance", "interpolation", "dispute"],
   "properties": {
     "policy_version": {
       "const": "1.0.0"
+    },
+    "attribution_path": {
+      "type": "object",
+      "description": "Defines the canonical 24-hour attribution window for signal outcome resolution. A signal emitted at time T is resolved against the price observed at T+24h. This policy governs how that T+24h price is determined.",
+      "required": ["window_hours", "outcome_rule"],
+      "properties": {
+        "window_hours": {
+          "const": 24,
+          "description": "Attribution window in hours. Fixed at 24h for this specification."
+        },
+        "outcome_rule": {
+          "enum": ["exact_timestamp", "nearest_within_staleness", "interpolate_if_missing"],
+          "default": "nearest_within_staleness",
+          "description": "How to resolve the outcome price at T+24h: exact_timestamp requires a price at exactly T+24h, nearest_within_staleness uses the closest observation within the staleness window, interpolate_if_missing falls back to interpolation."
+        }
+      }
     },
     "source_hierarchy": {
       "type": "object",

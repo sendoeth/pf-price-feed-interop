@@ -271,6 +271,9 @@
         "staleness_seconds": 0,
         "interpolated": false,
         "interpolation_method": "none",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0",
+        "attestation_hash": "4ce1e9a2ac349edbb8c664e052d5818d77e957c7ee3834ddd91955aab2a31b0e",
         "attestation": {
           "hash": "4ce1e9a2ac349edbb8c664e052d5818d77e957c7ee3834ddd91955aab2a31b0e",
           "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -292,6 +295,9 @@
         "staleness_seconds": 0,
         "interpolated": false,
         "interpolation_method": "none",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0",
+        "attestation_hash": "1b97f66191d7ed61e5668581d4c15bcd81676661d6cba703ea44266989a8e598",
         "attestation": {
           "hash": "1b97f66191d7ed61e5668581d4c15bcd81676661d6cba703ea44266989a8e598",
           "previous_hash": "4ce1e9a2ac349edbb8c664e052d5818d77e957c7ee3834ddd91955aab2a31b0e",

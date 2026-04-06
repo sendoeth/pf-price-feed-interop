@@ -1,11 +1,19 @@
 {
   "case_id": "PFQ-008",
-  "title": "Median-of-top-3 selection rule — outlier resistance",
+  "title": "Median-of-top-3 selection rule \u2014 outlier resistance",
   "description": "Policy uses median_of_top_n selection with top_n=3. Three sources available, one is an outlier. Median selection eliminates the outlier without triggering dispute.",
   "policy_overrides": {
-    "source_hierarchy": { "selection_rule": "median_of_top_n", "top_n": 3 },
-    "staleness": { "max_staleness_seconds": 7200 },
-    "tolerance": { "max_deviation_percent": 5.0, "deviation_action": "use_median" }
+    "source_hierarchy": {
+      "selection_rule": "median_of_top_n",
+      "top_n": 3
+    },
+    "staleness": {
+      "max_staleness_seconds": 7200
+    },
+    "tolerance": {
+      "max_deviation_percent": 5.0,
+      "deviation_action": "use_median"
+    }
   },
   "input": {
     "requested_symbol": "BTC",
@@ -15,39 +23,60 @@
         "quote_id": "q-008-a",
         "symbol": "BTC",
         "timestamp": "2026-04-01T11:59:00Z",
-        "source": { "source_id": "binance_spot", "source_type": "exchange_direct", "priority": 0 },
-        "price": 84100.00,
+        "source": {
+          "source_id": "binance_spot",
+          "source_type": "exchange_direct",
+          "priority": 0
+        },
+        "price": 84100.0,
         "confidence": 1.0,
         "staleness_seconds": 60,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "7eaf26745914b774ad31fe35876a98f8ddb038eb04262812b083527900701d75",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0"
       },
       {
         "quote_id": "q-008-b",
         "symbol": "BTC",
         "timestamp": "2026-04-01T11:59:30Z",
-        "source": { "source_id": "coinbase_spot", "source_type": "exchange_direct", "priority": 1 },
-        "price": 84200.00,
+        "source": {
+          "source_id": "coinbase_spot",
+          "source_type": "exchange_direct",
+          "priority": 1
+        },
+        "price": 84200.0,
         "confidence": 1.0,
         "staleness_seconds": 30,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "613deff78aaea5a4c0beddfd2291d827cf6a84ace572f6b74bc6fbbd04d99d09",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0"
       },
       {
         "quote_id": "q-008-c",
         "symbol": "BTC",
         "timestamp": "2026-04-01T11:58:00Z",
-        "source": { "source_id": "kraken_spot", "source_type": "exchange_direct", "priority": 2 },
-        "price": 88000.00,
+        "source": {
+          "source_id": "kraken_spot",
+          "source_type": "exchange_direct",
+          "priority": 2
+        },
+        "price": 88000.0,
         "confidence": 1.0,
         "staleness_seconds": 120,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "d8ae19e320a3e47cbd6e1e9df7bf930896e9d41e2c78d3d2e6d0e55034258e67",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0"
       }
     ]
   },
   "expected": {
-    "resolved_price": 84200.00,
+    "resolved_price": 84200.0,
     "resolved_source_id": "median_of_3",
     "resolution_method": "median_of_top_n",
     "staleness_seconds": 30,

@@ -1,10 +1,15 @@
 {
   "case_id": "PFQ-005",
-  "title": "Sources within tolerance boundary — primary wins",
+  "title": "Sources within tolerance boundary \u2014 primary wins",
   "description": "Two sources report slightly different prices but within the 2% tolerance threshold. Resolution uses primary source without dispute.",
   "policy_overrides": {
-    "staleness": { "max_staleness_seconds": 7200 },
-    "tolerance": { "max_deviation_percent": 2.0, "deviation_action": "dispute" }
+    "staleness": {
+      "max_staleness_seconds": 7200
+    },
+    "tolerance": {
+      "max_deviation_percent": 2.0,
+      "deviation_action": "dispute"
+    }
   },
   "input": {
     "requested_symbol": "BTC",
@@ -14,28 +19,42 @@
         "quote_id": "q-005-a",
         "symbol": "BTC",
         "timestamp": "2026-04-01T11:59:00Z",
-        "source": { "source_id": "binance_spot", "source_type": "exchange_direct", "priority": 0 },
-        "price": 84000.00,
+        "source": {
+          "source_id": "binance_spot",
+          "source_type": "exchange_direct",
+          "priority": 0
+        },
+        "price": 84000.0,
         "confidence": 1.0,
         "staleness_seconds": 60,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "498762e43da54d6599b76f493e78234db6d9521ef3d7c5d91e0401ac9edad906",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0"
       },
       {
         "quote_id": "q-005-b",
         "symbol": "BTC",
         "timestamp": "2026-04-01T11:59:30Z",
-        "source": { "source_id": "coinbase_spot", "source_type": "exchange_direct", "priority": 1 },
-        "price": 84800.00,
+        "source": {
+          "source_id": "coinbase_spot",
+          "source_type": "exchange_direct",
+          "priority": 1
+        },
+        "price": 84800.0,
         "confidence": 1.0,
         "staleness_seconds": 30,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "47e34091cc5a26b949f18215e60f88240a55903f74be1bac32e577b74a928480",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0"
       }
     ]
   },
   "expected": {
-    "resolved_price": 84000.00,
+    "resolved_price": 84000.0,
     "resolved_source_id": "binance_spot",
     "resolution_method": "first_valid",
     "staleness_seconds": 60,

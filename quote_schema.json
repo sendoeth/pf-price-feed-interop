@@ -4,7 +4,7 @@
   "title": "Post Fiat Canonical Price Quote",
   "description": "Normalized quote schema for cross-producer, cross-auditor price feed interop. Every quote is a single (symbol, timestamp) observation from a named source with confidence metadata.",
   "type": "object",
-  "required": ["quote_id", "symbol", "timestamp", "source", "price", "confidence"],
+  "required": ["quote_id", "symbol", "timestamp", "source", "price", "confidence", "attestation_hash", "source_tier", "feed_version"],
   "properties": {
     "quote_id": {
       "type": "string",
@@ -34,6 +34,21 @@
       "minimum": 0.0,
       "maximum": 1.0,
       "description": "Source reliability confidence (1.0 = exchange direct, 0.5 = interpolated, lower = estimated)"
+    },
+    "attestation_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash of canonical fields (quote_id|symbol|timestamp|source_id|price|confidence). Top-level convenience field — identical to attestation.hash when full attestation object is present."
+    },
+    "source_tier": {
+      "enum": ["tier_1_exchange", "tier_2_aggregator", "tier_3_api", "tier_4_manual", "tier_5_interpolated"],
+      "description": "Source reliability tier. tier_1 = exchange direct feeds, tier_2 = aggregators (CoinGecko, CoinMarketCap), tier_3 = API providers (Yahoo Finance), tier_4 = manual entry, tier_5 = interpolated/synthetic."
+    },
+    "feed_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "default": "1.0.0",
+      "description": "Semantic version of the feed specification this quote conforms to. Allows consumers to detect schema upgrades."
     },
     "staleness_seconds": {
       "type": "number",

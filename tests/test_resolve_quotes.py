@@ -26,6 +26,8 @@ from resolve_quotes import (
     verify_attestation_chain,
     build_attestation_chain,
     generate_attestation_example,
+    derive_source_tier,
+    enrich_quote,
     QuoteResolver,
     load_fixtures,
     replay_fixture,
@@ -35,6 +37,10 @@ from resolve_quotes import (
     DEFAULT_POLICY,
     RESOLUTION_STATUSES,
     RESOLUTION_METHODS,
+    FEED_VERSION,
+    SOURCE_TIER_MAP,
+    ATTRIBUTION_WINDOW_HOURS,
+    ATTRIBUTION_WINDOW_SECONDS,
 )
 
 
@@ -44,7 +50,7 @@ from resolve_quotes import (
 
 def make_quote(quote_id, symbol, timestamp, source_id, source_type, priority,
                price, confidence=1.0, staleness=0):
-    return {
+    q = {
         "quote_id": quote_id,
         "symbol": symbol,
         "timestamp": timestamp,
@@ -57,8 +63,14 @@ def make_quote(quote_id, symbol, timestamp, source_id, source_type, priority,
         "confidence": confidence,
         "staleness_seconds": staleness,
         "interpolated": False,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "source_tier": derive_source_tier(source_type),
+        "feed_version": FEED_VERSION,
     }
+    q["attestation_hash"] = compute_quote_hash(
+        quote_id, symbol, timestamp, source_id, price, confidence
+    )
+    return q
 
 
 # ========================================================================
@@ -1113,6 +1125,176 @@ class TestReplayReportStructure(unittest.TestCase):
             self.assertIn("actual", case)
             self.assertIn("expected", case)
             self.assertIn("mismatches", case)
+
+
+# ========================================================================
+# 16. New Required Fields: attestation_hash, source_tier, feed_version
+# ========================================================================
+
+class TestAttestationHashField(unittest.TestCase):
+    """Test attestation_hash as a top-level quote field."""
+
+    def test_make_quote_includes_attestation_hash(self):
+        q = make_quote("q1", "BTC", "2026-04-01T12:00:00Z", "binance", "exchange_direct", 0, 84000.0)
+        self.assertIn("attestation_hash", q)
+        self.assertEqual(len(q["attestation_hash"]), 64)
+
+    def test_attestation_hash_matches_compute(self):
+        q = make_quote("q1", "BTC", "2026-04-01T12:00:00Z", "binance", "exchange_direct", 0, 84000.0)
+        expected = compute_quote_hash("q1", "BTC", "2026-04-01T12:00:00Z", "binance", 84000.0, 1.0)
+        self.assertEqual(q["attestation_hash"], expected)
+
+    def test_attestation_hash_in_fixtures(self):
+        fixtures = load_fixtures()
+        for fix in fixtures:
+            for q in fix["input"]["available_quotes"]:
+                self.assertIn("attestation_hash", q,
+                              f"Missing attestation_hash in {fix['case_id']}")
+                self.assertEqual(len(q["attestation_hash"]), 64,
+                                 f"Bad hash length in {fix['case_id']}")
+
+    def test_attestation_hash_validates(self):
+        q = make_quote("q1", "BTC", "2026-04-01T12:00:00Z", "binance", "exchange_direct", 0, 84000.0)
+        valid, errors = validate_quote(q)
+        self.assertTrue(valid, f"Validation errors: {errors}")
+
+
+class TestSourceTierField(unittest.TestCase):
+    """Test source_tier as a top-level quote field."""
+
+    def test_derive_all_tiers(self):
+        self.assertEqual(derive_source_tier("exchange_direct"), "tier_1_exchange")
+        self.assertEqual(derive_source_tier("aggregator"), "tier_2_aggregator")
+        self.assertEqual(derive_source_tier("api_provider"), "tier_3_api")
+        self.assertEqual(derive_source_tier("manual"), "tier_4_manual")
+        self.assertEqual(derive_source_tier("interpolated"), "tier_5_interpolated")
+
+    def test_unknown_source_defaults_tier_3(self):
+        self.assertEqual(derive_source_tier("unknown"), "tier_3_api")
+
+    def test_make_quote_includes_source_tier(self):
+        q = make_quote("q1", "BTC", "ts", "binance", "exchange_direct", 0, 84000.0)
+        self.assertEqual(q["source_tier"], "tier_1_exchange")
+
+    def test_source_tier_in_fixtures(self):
+        fixtures = load_fixtures()
+        valid_tiers = set(SOURCE_TIER_MAP.values())
+        for fix in fixtures:
+            for q in fix["input"]["available_quotes"]:
+                self.assertIn("source_tier", q,
+                              f"Missing source_tier in {fix['case_id']}")
+                self.assertIn(q["source_tier"], valid_tiers,
+                              f"Bad source_tier in {fix['case_id']}: {q['source_tier']}")
+
+    def test_source_tier_validates(self):
+        q = make_quote("q1", "BTC", "ts", "binance", "exchange_direct", 0, 84000.0)
+        valid, errors = validate_quote(q)
+        self.assertTrue(valid, f"Validation errors: {errors}")
+
+    def test_invalid_source_tier_fails(self):
+        q = make_quote("q1", "BTC", "ts", "binance", "exchange_direct", 0, 84000.0)
+        q["source_tier"] = "invalid_tier"
+        valid, errors = validate_quote(q)
+        self.assertFalse(valid)
+        self.assertTrue(any("source_tier" in e for e in errors))
+
+
+class TestFeedVersionField(unittest.TestCase):
+    """Test feed_version as a top-level quote field."""
+
+    def test_make_quote_includes_feed_version(self):
+        q = make_quote("q1", "BTC", "ts", "binance", "exchange_direct", 0, 84000.0)
+        self.assertEqual(q["feed_version"], "1.0.0")
+
+    def test_feed_version_in_fixtures(self):
+        fixtures = load_fixtures()
+        for fix in fixtures:
+            for q in fix["input"]["available_quotes"]:
+                self.assertIn("feed_version", q,
+                              f"Missing feed_version in {fix['case_id']}")
+                self.assertRegex(q["feed_version"], r"^\d+\.\d+\.\d+$",
+                                 f"Bad feed_version in {fix['case_id']}")
+
+    def test_feed_version_validates(self):
+        q = make_quote("q1", "BTC", "ts", "binance", "exchange_direct", 0, 84000.0)
+        valid, errors = validate_quote(q)
+        self.assertTrue(valid, f"Validation errors: {errors}")
+
+    def test_invalid_feed_version_fails(self):
+        q = make_quote("q1", "BTC", "ts", "binance", "exchange_direct", 0, 84000.0)
+        q["feed_version"] = "not-semver"
+        valid, errors = validate_quote(q)
+        self.assertFalse(valid)
+        self.assertTrue(any("feed_version" in e for e in errors))
+
+
+class TestEnrichQuote(unittest.TestCase):
+    """Test the enrich_quote utility."""
+
+    def test_enrich_adds_missing_fields(self):
+        q = {
+            "quote_id": "q1", "symbol": "BTC", "timestamp": "ts",
+            "source": {"source_id": "binance", "source_type": "exchange_direct", "priority": 0},
+            "price": 84000.0, "confidence": 1.0
+        }
+        enrich_quote(q)
+        self.assertIn("attestation_hash", q)
+        self.assertIn("source_tier", q)
+        self.assertIn("feed_version", q)
+
+    def test_enrich_does_not_overwrite_existing(self):
+        q = make_quote("q1", "BTC", "ts", "binance", "exchange_direct", 0, 84000.0)
+        q["feed_version"] = "2.0.0"
+        enrich_quote(q)
+        self.assertEqual(q["feed_version"], "2.0.0")
+
+
+# ========================================================================
+# 17. 24h Attribution Path
+# ========================================================================
+
+class TestAttributionPath(unittest.TestCase):
+    """Test 24h attribution path constants and integration."""
+
+    def test_attribution_window_hours(self):
+        self.assertEqual(ATTRIBUTION_WINDOW_HOURS, 24)
+
+    def test_attribution_window_seconds(self):
+        self.assertEqual(ATTRIBUTION_WINDOW_SECONDS, 86400)
+
+    def test_resolution_policy_has_attribution_path(self):
+        import json
+        policy_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "resolution_policy.json"
+        )
+        with open(policy_path) as f:
+            policy = json.load(f)
+        self.assertIn("attribution_path", policy["properties"])
+        att = policy["properties"]["attribution_path"]
+        self.assertEqual(att["properties"]["window_hours"]["const"], 24)
+
+
+class TestAttestationExampleNewFields(unittest.TestCase):
+    """Test that the attestation example includes new required fields."""
+
+    def test_example_records_have_source_tier(self):
+        ex = generate_attestation_example()
+        for r in ex["records"]:
+            self.assertIn("source_tier", r)
+            self.assertEqual(r["source_tier"], "tier_1_exchange")
+
+    def test_example_records_have_feed_version(self):
+        ex = generate_attestation_example()
+        for r in ex["records"]:
+            self.assertIn("feed_version", r)
+            self.assertEqual(r["feed_version"], FEED_VERSION)
+
+    def test_example_records_have_attestation_hash(self):
+        ex = generate_attestation_example()
+        for r in ex["records"]:
+            self.assertIn("attestation_hash", r)
+            self.assertEqual(len(r["attestation_hash"]), 64)
 
 
 if __name__ == "__main__":

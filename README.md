@@ -32,13 +32,13 @@ python3 -m pytest tests/ -v
 
 | File | Purpose |
 |------|---------|
-| `quote_schema.json` | JSON Schema for normalized price quotes (symbol, timestamp, source, price, confidence, attestation) |
-| `resolution_policy.json` | Deterministic rules: source hierarchy, staleness, tolerance, interpolation, dispute fallback |
+| `quote_schema.json` | JSON Schema for normalized price quotes (symbol, timestamp, source, price, confidence, attestation_hash, source_tier, feed_version) |
+| `resolution_policy.json` | Deterministic rules: 24h attribution path, source hierarchy, staleness, tolerance, interpolation, dispute fallback |
 | `resolve_quotes.py` | Resolution engine + fixture replay runner + attestation chain builder |
 | `attestation_example.json` | Two consecutive BTC quotes linked by SHA-256 hash chain |
 | `replay_output.json` | Full replay transcript (8/8 MATCH) |
 | `fixtures/PFQ-*.json` | 8 fixture cases covering every resolution path |
-| `tests/test_resolve_quotes.py` | 111 tests across 15 classes |
+| `tests/test_resolve_quotes.py` | 133 tests across 20 classes |
 
 ## Quote Schema
 
@@ -52,13 +52,20 @@ Every price observation is a single `(symbol, timestamp)` record from a named so
 | `source` | object | yes | `source_id`, `source_type`, `priority` |
 | `price` | number | yes | Observed price in USD (> 0) |
 | `confidence` | number | yes | Source reliability 0.0-1.0 |
+| `attestation_hash` | string | yes | SHA-256 hash of canonical fields (`quote_id\|symbol\|timestamp\|source_id\|price\|confidence`) |
+| `source_tier` | enum | yes | Source reliability tier: `tier_1_exchange`, `tier_2_aggregator`, `tier_3_api`, `tier_4_manual`, `tier_5_interpolated` |
+| `feed_version` | string | yes | Semantic version of feed spec this quote conforms to (e.g. `1.0.0`) |
 | `staleness_seconds` | number | no | Seconds between requested and actual observation |
 | `interpolated` | boolean | no | True if interpolated between neighbors |
-| `attestation` | object | no | SHA-256 hash chain linking to previous quote |
+| `attestation` | object | no | Full hash-chain attestation linking to previous quote |
 
 ## Resolution Policy
 
-The resolution policy defines 5 deterministic dimensions:
+The resolution policy defines 6 deterministic dimensions for one **24-hour attribution path**: every signal emitted at time T is resolved against the price at T+24h using these rules.
+
+### 0. Attribution Path
+
+Fixed 24-hour window. A signal's outcome is determined by the canonical price at exactly T+24h after emission. The rules below govern how that T+24h price is resolved when the exact observation is missing, stale, or disputed.
 
 ### 1. Source Hierarchy
 
@@ -151,7 +158,7 @@ Without canonical price resolution, two auditors resolving the same signal can d
 
 ## Tests
 
-111 tests across 15 classes:
+133 tests across 20 classes:
 
 - Timestamp parsing (6)
 - Hash computation (6)
@@ -170,6 +177,12 @@ Without canonical price resolution, two auditors resolving the same signal can d
 - Edge cases (6)
 - File output (2)
 - Constants (6)
+- attestation_hash field (4)
+- source_tier field (6)
+- feed_version field (4)
+- enrich_quote utility (2)
+- 24h attribution path (3)
+- Attestation example new fields (3)
 
 ```bash
 python3 -m pytest tests/ -v

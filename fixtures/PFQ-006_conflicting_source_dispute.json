@@ -1,11 +1,22 @@
 {
   "case_id": "PFQ-006",
-  "title": "Sources exceed tolerance — dispute triggered",
+  "title": "Sources exceed tolerance \u2014 dispute triggered",
   "description": "Two fresh sources report prices exceeding the 2% deviation tolerance. deviation_action=dispute triggers the dispute fallback chain. Fallback uses median resolution.",
   "policy_overrides": {
-    "staleness": { "max_staleness_seconds": 7200 },
-    "tolerance": { "max_deviation_percent": 2.0, "deviation_action": "dispute" },
-    "dispute": { "fallback_chain": ["use_median", "mark_unresolved"], "unresolved_action": "skip_signal" }
+    "staleness": {
+      "max_staleness_seconds": 7200
+    },
+    "tolerance": {
+      "max_deviation_percent": 2.0,
+      "deviation_action": "dispute"
+    },
+    "dispute": {
+      "fallback_chain": [
+        "use_median",
+        "mark_unresolved"
+      ],
+      "unresolved_action": "skip_signal"
+    }
   },
   "input": {
     "requested_symbol": "ETH",
@@ -15,39 +26,60 @@
         "quote_id": "q-006-a",
         "symbol": "ETH",
         "timestamp": "2026-04-01T11:59:00Z",
-        "source": { "source_id": "binance_spot", "source_type": "exchange_direct", "priority": 0 },
-        "price": 1800.00,
+        "source": {
+          "source_id": "binance_spot",
+          "source_type": "exchange_direct",
+          "priority": 0
+        },
+        "price": 1800.0,
         "confidence": 1.0,
         "staleness_seconds": 60,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "edb43fc3ecb75dfe1633ccc0ce42c1dbfc2e3ef0040de8908dbbe26baf0b1d06",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0"
       },
       {
         "quote_id": "q-006-b",
         "symbol": "ETH",
         "timestamp": "2026-04-01T11:59:30Z",
-        "source": { "source_id": "coinbase_spot", "source_type": "exchange_direct", "priority": 1 },
-        "price": 1860.00,
+        "source": {
+          "source_id": "coinbase_spot",
+          "source_type": "exchange_direct",
+          "priority": 1
+        },
+        "price": 1860.0,
         "confidence": 1.0,
         "staleness_seconds": 30,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "19b6a8f323ad42318614cc23b9a70ff4ef6592ff8bc98bdc5fbdecfaff41cd99",
+        "source_tier": "tier_1_exchange",
+        "feed_version": "1.0.0"
       },
       {
         "quote_id": "q-006-c",
         "symbol": "ETH",
         "timestamp": "2026-04-01T11:58:00Z",
-        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 2 },
-        "price": 1835.00,
+        "source": {
+          "source_id": "coingecko",
+          "source_type": "aggregator",
+          "priority": 2
+        },
+        "price": 1835.0,
         "confidence": 0.95,
         "staleness_seconds": 120,
         "interpolated": false,
-        "interpolation_method": "none"
+        "interpolation_method": "none",
+        "attestation_hash": "f6937b11d4f3e43a95cd5165111c3754b57ecc5010d2f08f04d664ce8377aa45",
+        "source_tier": "tier_2_aggregator",
+        "feed_version": "1.0.0"
       }
     ]
   },
   "expected": {
-    "resolved_price": 1835.00,
+    "resolved_price": 1835.0,
     "resolved_source_id": "median_of_3",
     "resolution_method": "dispute_median",
     "staleness_seconds": 120,
