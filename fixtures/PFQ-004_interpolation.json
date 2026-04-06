@@ -1,0 +1,49 @@
+{
+  "case_id": "PFQ-004",
+  "title": "No exact observation — linear interpolation between neighbors",
+  "description": "No source has an observation at the requested timestamp. Two neighboring observations from the same source bracket the target but are both stale. stale_action=interpolate triggers linear interpolation with confidence penalty.",
+  "policy_overrides": {
+    "staleness": { "max_staleness_seconds": 1800, "stale_action": "interpolate" },
+    "interpolation": { "enabled": true, "method": "linear", "max_gap_seconds": 14400, "confidence_penalty": 0.5 },
+    "tolerance": { "max_deviation_percent": 5.0 }
+  },
+  "input": {
+    "requested_symbol": "LINK",
+    "requested_timestamp": "2026-04-01T12:00:00Z",
+    "available_quotes": [
+      {
+        "quote_id": "q-004-a",
+        "symbol": "LINK",
+        "timestamp": "2026-04-01T11:00:00Z",
+        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
+        "price": 14.20,
+        "confidence": 0.95,
+        "staleness_seconds": 3600,
+        "interpolated": false,
+        "interpolation_method": "none"
+      },
+      {
+        "quote_id": "q-004-b",
+        "symbol": "LINK",
+        "timestamp": "2026-04-01T13:00:00Z",
+        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
+        "price": 14.60,
+        "confidence": 0.95,
+        "staleness_seconds": 3600,
+        "interpolated": false,
+        "interpolation_method": "none"
+      }
+    ]
+  },
+  "expected": {
+    "resolved_price": 14.40,
+    "resolved_source_id": "coingecko",
+    "resolution_method": "interpolated",
+    "staleness_seconds": 0,
+    "confidence": 0.475,
+    "interpolated": true,
+    "status": "RESOLVED",
+    "dispute": false,
+    "reason": "Linear interpolation between coingecko observations at 11:00:00+00:00 (14.2) and 13:00:00+00:00 (14.6). Gap=7200s within 14400s limit. Confidence=0.95*0.5=0.475."
+  }
+}

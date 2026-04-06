@@ -1,0 +1,308 @@
+{
+  "summary": {
+    "total": 8,
+    "matches": 8,
+    "mismatches": 0,
+    "pass_rate": "8/8",
+    "all_pass": true
+  },
+  "cases": [
+    {
+      "case_id": "PFQ-001",
+      "title": "Primary source available and fresh \u2014 direct resolution",
+      "expected_action": "RESOLVED",
+      "actual_action": "RESOLVED",
+      "match": true,
+      "mismatches": [],
+      "actual": {
+        "resolved_price": 84250.5,
+        "resolved_source_id": "binance_spot",
+        "resolution_method": "first_valid",
+        "staleness_seconds": 30.0,
+        "confidence": 1.0,
+        "interpolated": false,
+        "status": "RESOLVED",
+        "dispute": false,
+        "reason": "Two sources deviate 0.012% (< 2.0% tolerance). Primary source binance_spot selected.",
+        "deviation_percent": 0.012
+      },
+      "expected": {
+        "resolved_price": 84250.5,
+        "resolved_source_id": "binance_spot",
+        "resolution_method": "first_valid",
+        "staleness_seconds": 30,
+        "confidence": 1.0,
+        "interpolated": false,
+        "status": "RESOLVED",
+        "dispute": false,
+        "reason": "Primary source binance_spot fresh within 7200s staleness window"
+      }
+    },
+    {
+      "case_id": "PFQ-002",
+      "title": "Primary source stale \u2014 fallback to secondary source",
+      "expected_action": "RESOLVED",
+      "actual_action": "RESOLVED",
+      "match": true,
+      "mismatches": [],
+      "actual": {
+        "resolved_price": 1835.25,
+        "resolved_source_id": "coingecko",
+        "resolution_method": "fallback_source",
+        "staleness_seconds": 300.0,
+        "confidence": 0.95,
+        "interpolated": false,
+        "status": "RESOLVED",
+        "dispute": false,
+        "reason": "Primary source binance_spot stale (14400s > 7200s). Fallback to coingecko (300s staleness, within window)."
+      },
+      "expected": {
+        "resolved_price": 1835.25,
+        "resolved_source_id": "coingecko",
+        "resolution_method": "fallback_source",
+        "staleness_seconds": 300,
+        "confidence": 0.95,
+        "interpolated": false,
+        "status": "RESOLVED",
+        "dispute": false,
+        "reason": "Primary source binance_spot stale (14400s > 7200s). Fallback to coingecko (300s staleness, within window)."
+      }
+    },
+    {
+      "case_id": "PFQ-003",
+      "title": "All sources stale \u2014 rejection via stale_action=reject",
+      "expected_action": "UNRESOLVED",
+      "actual_action": "UNRESOLVED",
+      "match": true,
+      "mismatches": [],
+      "actual": {
+        "resolved_price": null,
+        "resolved_source_id": null,
+        "resolution_method": "rejected",
+        "staleness_seconds": null,
+        "confidence": 0.0,
+        "interpolated": false,
+        "status": "UNRESOLVED",
+        "dispute": false,
+        "reason": "All sources stale. stale_action=reject. binance_spot: 21600s > 3600s. coingecko: 16200s > 3600s."
+      },
+      "expected": {
+        "resolved_price": null,
+        "resolved_source_id": null,
+        "resolution_method": "rejected",
+        "staleness_seconds": null,
+        "confidence": 0.0,
+        "interpolated": false,
+        "status": "UNRESOLVED",
+        "dispute": false,
+        "reason": "All sources stale. stale_action=reject. binance_spot: 21600s > 3600s. coingecko: 16200s > 3600s."
+      }
+    },
+    {
+      "case_id": "PFQ-004",
+      "title": "No exact observation \u2014 linear interpolation between neighbors",
+      "expected_action": "RESOLVED",
+      "actual_action": "RESOLVED",
+      "match": true,
+      "mismatches": [],
+      "actual": {
+        "resolved_price": 14.4,
+        "resolved_source_id": "coingecko",
+        "resolution_method": "interpolated",
+        "staleness_seconds": 0,
+        "confidence": 0.475,
+        "interpolated": true,
+        "status": "RESOLVED",
+        "dispute": false,
+        "reason": "Linear interpolation between coingecko observations at 11:00:00 (14.2) and 13:00:00 (14.6). Gap=7200s within 14400s limit. Confidence=0.95*0.5=0.475."
+      },
+      "expected": {
+        "resolved_price": 14.4,
+        "resolved_source_id": "coingecko",
+        "resolution_method": "interpolated",
+        "staleness_seconds": 0,
+        "confidence": 0.475,
+        "interpolated": true,
+        "status": "RESOLVED",
+        "dispute": false,
+        "reason": "Linear interpolation between coingecko observations at 11:00:00+00:00 (14.2) and 13:00:00+00:00 (14.6). Gap=7200s within 14400s limit. Confidence=0.95*0.5=0.475."
+      }
+    },
+    {
+      "case_id": "PFQ-005",
+      "title": "Sources within tolerance boundary \u2014 primary wins",
+      "expected_action": "RESOLVED",
+      "actual_action": "RESOLVED",
+      "match": true,
+      "mismatches": [],
+      "actual": {
+        "resolved_price": 84000.0,
+        "resolved_source_id": "binance_spot",
+        "resolution_method": "first_valid",
+        "staleness_seconds": 60.0,
+        "confidence": 1.0,
+        "interpolated": false,
+        "status": "RESOLVED",
+        "dispute": false,
+        "reason": "Two sources deviate 0.952% (< 2.0% tolerance). Primary source binance_spot selected.",
+        "deviation_percent": 0.952
+      },
+      "expected": {
+        "resolved_price": 84000.0,
+        "resolved_source_id": "binance_spot",
+        "resolution_method": "first_valid",
+        "staleness_seconds": 60,
+        "confidence": 1.0,
+        "interpolated": false,
+        "status": "RESOLVED",
+        "dispute": false,
+        "deviation_percent": 0.952,
+        "reason": "Two sources deviate 0.952% (< 2.0% tolerance). Primary source binance_spot selected."
+      }
+    },
+    {
+      "case_id": "PFQ-006",
+      "title": "Sources exceed tolerance \u2014 dispute triggered",
+      "expected_action": "RESOLVED_DISPUTE",
+      "actual_action": "RESOLVED_DISPUTE",
+      "match": true,
+      "mismatches": [],
+      "actual": {
+        "resolved_price": 1835.0,
+        "resolved_source_id": "median_of_3",
+        "resolution_method": "dispute_median",
+        "staleness_seconds": 120.0,
+        "confidence": 0.95,
+        "interpolated": false,
+        "status": "RESOLVED_DISPUTE",
+        "dispute": true,
+        "deviation_percent": 3.333,
+        "reason": "Sources deviate 3.333% (> 2.0% tolerance). Fallback: use_median of 3 sources [1800.0, 1835.0, 1860.0] = 1835.0."
+      },
+      "expected": {
+        "resolved_price": 1835.0,
+        "resolved_source_id": "median_of_3",
+        "resolution_method": "dispute_median",
+        "staleness_seconds": 120,
+        "confidence": 0.95,
+        "interpolated": false,
+        "status": "RESOLVED_DISPUTE",
+        "dispute": true,
+        "deviation_percent": 3.333,
+        "reason": "Sources deviate 3.333% (> 2.0% tolerance). Dispute triggered. Fallback: use_median of 3 sources [1800.00, 1835.00, 1860.00] = 1835.00."
+      }
+    },
+    {
+      "case_id": "PFQ-007",
+      "title": "Interpolation gap exceeds max \u2014 fallback to mark_unresolved",
+      "expected_action": "UNRESOLVED",
+      "actual_action": "UNRESOLVED",
+      "match": true,
+      "mismatches": [],
+      "actual": {
+        "resolved_price": null,
+        "resolved_source_id": null,
+        "resolution_method": "mark_unresolved",
+        "staleness_seconds": null,
+        "confidence": 0.0,
+        "interpolated": false,
+        "status": "UNRESOLVED",
+        "dispute": false,
+        "reason": "All sources stale. Interpolation gap 28800s exceeds max 3600s. Fallback chain exhausted to mark_unresolved."
+      },
+      "expected": {
+        "resolved_price": null,
+        "resolved_source_id": null,
+        "resolution_method": "mark_unresolved",
+        "staleness_seconds": null,
+        "confidence": 0.0,
+        "interpolated": false,
+        "status": "UNRESOLVED",
+        "dispute": false,
+        "reason": "All sources stale. Interpolation gap 28800s exceeds max 3600s. Fallback chain exhausted to mark_unresolved."
+      }
+    },
+    {
+      "case_id": "PFQ-008",
+      "title": "Median-of-top-3 selection rule \u2014 outlier resistance",
+      "expected_action": "RESOLVED",
+      "actual_action": "RESOLVED",
+      "match": true,
+      "mismatches": [],
+      "actual": {
+        "resolved_price": 84200.0,
+        "resolved_source_id": "median_of_3",
+        "resolution_method": "median_of_top_n",
+        "staleness_seconds": 30.0,
+        "confidence": 1.0,
+        "interpolated": false,
+        "status": "RESOLVED",
+        "dispute": false,
+        "reason": "Median of top 3 sources: [84100.0, 84200.0, 88000.0] = 84200.0. Outlier eliminated by median."
+      },
+      "expected": {
+        "resolved_price": 84200.0,
+        "resolved_source_id": "median_of_3",
+        "resolution_method": "median_of_top_n",
+        "staleness_seconds": 30,
+        "confidence": 1.0,
+        "interpolated": false,
+        "status": "RESOLVED",
+        "dispute": false,
+        "reason": "Median of top 3 sources: [84100.00, 84200.00, 88000.00] = 84200.00. Outlier kraken_spot (88000.00) eliminated by median."
+      }
+    }
+  ],
+  "attestation_example": {
+    "description": "Two consecutive BTC quotes from binance_spot linked by SHA-256 hash chain",
+    "chain_id": "btc_binance",
+    "records": [
+      {
+        "quote_id": "attest-001",
+        "symbol": "BTC",
+        "timestamp": "2026-04-01T12:00:00Z",
+        "source": {
+          "source_id": "binance_spot",
+          "source_type": "exchange_direct",
+          "priority": 0
+        },
+        "price": 84250.5,
+        "confidence": 1.0,
+        "staleness_seconds": 0,
+        "interpolated": false,
+        "interpolation_method": "none",
+        "attestation": {
+          "hash": "4ce1e9a2ac349edbb8c664e052d5818d77e957c7ee3834ddd91955aab2a31b0e",
+          "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "sequence_number": 0,
+          "chain_id": "btc_binance"
+        }
+      },
+      {
+        "quote_id": "attest-002",
+        "symbol": "BTC",
+        "timestamp": "2026-04-01T12:15:00Z",
+        "source": {
+          "source_id": "binance_spot",
+          "source_type": "exchange_direct",
+          "priority": 0
+        },
+        "price": 84310.0,
+        "confidence": 1.0,
+        "staleness_seconds": 0,
+        "interpolated": false,
+        "interpolation_method": "none",
+        "attestation": {
+          "hash": "1b97f66191d7ed61e5668581d4c15bcd81676661d6cba703ea44266989a8e598",
+          "previous_hash": "4ce1e9a2ac349edbb8c664e052d5818d77e957c7ee3834ddd91955aab2a31b0e",
+          "sequence_number": 1,
+          "chain_id": "btc_binance"
+        }
+      }
+    ],
+    "chain_valid": true,
+    "verification_error": null,
+    "hash_algorithm": "SHA-256",
+    "canonical_format": "quote_id|symbol|timestamp|source_id|price(2dp)|confidence(6dp)"
+  }
+}

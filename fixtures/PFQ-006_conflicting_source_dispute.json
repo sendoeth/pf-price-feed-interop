@@ -1,0 +1,61 @@
+{
+  "case_id": "PFQ-006",
+  "title": "Sources exceed tolerance — dispute triggered",
+  "description": "Two fresh sources report prices exceeding the 2% deviation tolerance. deviation_action=dispute triggers the dispute fallback chain. Fallback uses median resolution.",
+  "policy_overrides": {
+    "staleness": { "max_staleness_seconds": 7200 },
+    "tolerance": { "max_deviation_percent": 2.0, "deviation_action": "dispute" },
+    "dispute": { "fallback_chain": ["use_median", "mark_unresolved"], "unresolved_action": "skip_signal" }
+  },
+  "input": {
+    "requested_symbol": "ETH",
+    "requested_timestamp": "2026-04-01T12:00:00Z",
+    "available_quotes": [
+      {
+        "quote_id": "q-006-a",
+        "symbol": "ETH",
+        "timestamp": "2026-04-01T11:59:00Z",
+        "source": { "source_id": "binance_spot", "source_type": "exchange_direct", "priority": 0 },
+        "price": 1800.00,
+        "confidence": 1.0,
+        "staleness_seconds": 60,
+        "interpolated": false,
+        "interpolation_method": "none"
+      },
+      {
+        "quote_id": "q-006-b",
+        "symbol": "ETH",
+        "timestamp": "2026-04-01T11:59:30Z",
+        "source": { "source_id": "coinbase_spot", "source_type": "exchange_direct", "priority": 1 },
+        "price": 1860.00,
+        "confidence": 1.0,
+        "staleness_seconds": 30,
+        "interpolated": false,
+        "interpolation_method": "none"
+      },
+      {
+        "quote_id": "q-006-c",
+        "symbol": "ETH",
+        "timestamp": "2026-04-01T11:58:00Z",
+        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 2 },
+        "price": 1835.00,
+        "confidence": 0.95,
+        "staleness_seconds": 120,
+        "interpolated": false,
+        "interpolation_method": "none"
+      }
+    ]
+  },
+  "expected": {
+    "resolved_price": 1835.00,
+    "resolved_source_id": "median_of_3",
+    "resolution_method": "dispute_median",
+    "staleness_seconds": 120,
+    "confidence": 0.95,
+    "interpolated": false,
+    "status": "RESOLVED_DISPUTE",
+    "dispute": true,
+    "deviation_percent": 3.333,
+    "reason": "Sources deviate 3.333% (> 2.0% tolerance). Dispute triggered. Fallback: use_median of 3 sources [1800.00, 1835.00, 1860.00] = 1835.00."
+  }
+}

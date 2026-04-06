@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sendoeth/pf-price-feed-interop/resolution_policy.json",
+  "title": "Post Fiat Canonical Price Resolution Policy",
+  "description": "Deterministic rules for resolving a (symbol, timestamp) pair to a single canonical price. Eliminates private interpretation by defining source hierarchy, staleness, tolerance, interpolation, and dispute fallback.",
+  "type": "object",
+  "required": ["policy_version", "source_hierarchy", "staleness", "tolerance", "interpolation", "dispute"],
+  "properties": {
+    "policy_version": {
+      "const": "1.0.0"
+    },
+    "source_hierarchy": {
+      "type": "object",
+      "description": "Deterministic source precedence. Lower priority number = higher precedence. First available source within staleness window wins.",
+      "required": ["sources", "selection_rule"],
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["source_id", "source_type", "priority"],
+            "properties": {
+              "source_id": { "type": "string" },
+              "source_type": { "enum": ["exchange_direct", "aggregator", "api_provider", "manual", "interpolated"] },
+              "priority": { "type": "integer", "minimum": 0 },
+              "max_staleness_seconds": { "type": "integer", "description": "Per-source staleness override. Falls back to global if absent." }
+            }
+          },
+          "description": "Ordered list of price sources by priority"
+        },
+        "selection_rule": {
+          "enum": ["first_valid", "median_of_top_n", "weighted_average"],
+          "default": "first_valid",
+          "description": "How to select among available sources. first_valid = highest-priority non-stale source. median_of_top_n = median of top N non-stale sources (reduces outlier risk). weighted_average = confidence-weighted mean."
+        },
+        "top_n": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Number of sources to consider for median_of_top_n or weighted_average"
+        }
+      }
+    },
+    "staleness": {
+      "type": "object",
+      "description": "Maximum acceptable age of a price observation relative to the requested timestamp.",
+      "required": ["max_staleness_seconds", "stale_action"],
+      "properties": {
+        "max_staleness_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 7200,
+          "description": "Global maximum staleness in seconds (default 7200 = 2 hours)"
+        },
+        "stale_action": {
+          "enum": ["reject", "interpolate", "fallback_source"],
+          "default": "fallback_source",
+          "description": "What to do when primary source is stale: reject entirely, attempt interpolation, or try next source in hierarchy"
+        }
+      }
+    },
+    "tolerance": {
+      "type": "object",
+      "description": "Price agreement tolerance when multiple sources are available.",
+      "required": ["max_deviation_percent", "deviation_action"],
+      "properties": {
+        "max_deviation_percent": {
+          "type": "number",
+          "minimum": 0,
+          "default": 2.0,
+          "description": "Maximum acceptable percentage deviation between sources before flagging a dispute"
+        },
+        "deviation_action": {
+          "enum": ["use_primary", "use_median", "dispute"],
+          "default": "dispute",
+          "description": "Action when sources deviate beyond tolerance"
+        }
+      }
+    },
+    "interpolation": {
+      "type": "object",
+      "description": "Rules for interpolating price when no exact-timestamp observation exists.",
+      "required": ["enabled", "method", "max_gap_seconds"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether interpolation is permitted"
+        },
+        "method": {
+          "enum": ["linear", "nearest"],
+          "default": "linear",
+          "description": "Interpolation method. linear = time-weighted between neighbors. nearest = closest observation."
+        },
+        "max_gap_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 14400,
+          "description": "Maximum gap between neighboring observations for interpolation to be valid (default 4 hours)"
+        },
+        "confidence_penalty": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.0,
+          "default": 0.5,
+          "description": "Confidence multiplier applied to interpolated prices (0.5 = halved confidence)"
+        }
+      }
+    },
+    "dispute": {
+      "type": "object",
+      "description": "Fallback path when sources disagree beyond tolerance or all sources are stale.",
+      "required": ["fallback_chain"],
+      "properties": {
+        "fallback_chain": {
+          "type": "array",
+          "items": {
+            "enum": ["next_source", "interpolate", "use_median", "mark_unresolved"]
+          },
+          "default": ["next_source", "interpolate", "mark_unresolved"],
+          "description": "Ordered fallback steps. First successful step wins. mark_unresolved is terminal."
+        },
+        "unresolved_action": {
+          "enum": ["skip_signal", "use_last_known", "error"],
+          "default": "skip_signal",
+          "description": "What to do when the entire fallback chain exhausts without resolution"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

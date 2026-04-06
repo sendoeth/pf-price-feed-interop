@@ -1,0 +1,52 @@
+{
+  "description": "Two consecutive BTC quotes from binance_spot linked by SHA-256 hash chain",
+  "chain_id": "btc_binance",
+  "records": [
+    {
+      "quote_id": "attest-001",
+      "symbol": "BTC",
+      "timestamp": "2026-04-01T12:00:00Z",
+      "source": {
+        "source_id": "binance_spot",
+        "source_type": "exchange_direct",
+        "priority": 0
+      },
+      "price": 84250.5,
+      "confidence": 1.0,
+      "staleness_seconds": 0,
+      "interpolated": false,
+      "interpolation_method": "none",
+      "attestation": {
+        "hash": "4ce1e9a2ac349edbb8c664e052d5818d77e957c7ee3834ddd91955aab2a31b0e",
+        "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "sequence_number": 0,
+        "chain_id": "btc_binance"
+      }
+    },
+    {
+      "quote_id": "attest-002",
+      "symbol": "BTC",
+      "timestamp": "2026-04-01T12:15:00Z",
+      "source": {
+        "source_id": "binance_spot",
+        "source_type": "exchange_direct",
+        "priority": 0
+      },
+      "price": 84310.0,
+      "confidence": 1.0,
+      "staleness_seconds": 0,
+      "interpolated": false,
+      "interpolation_method": "none",
+      "attestation": {
+        "hash": "1b97f66191d7ed61e5668581d4c15bcd81676661d6cba703ea44266989a8e598",
+        "previous_hash": "4ce1e9a2ac349edbb8c664e052d5818d77e957c7ee3834ddd91955aab2a31b0e",
+        "sequence_number": 1,
+        "chain_id": "btc_binance"
+      }
+    }
+  ],
+  "chain_valid": true,
+  "verification_error": null,
+  "hash_algorithm": "SHA-256",
+  "canonical_format": "quote_id|symbol|timestamp|source_id|price(2dp)|confidence(6dp)"
+}

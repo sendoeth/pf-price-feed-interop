@@ -1,0 +1,49 @@
+{
+  "case_id": "PFQ-005",
+  "title": "Sources within tolerance boundary — primary wins",
+  "description": "Two sources report slightly different prices but within the 2% tolerance threshold. Resolution uses primary source without dispute.",
+  "policy_overrides": {
+    "staleness": { "max_staleness_seconds": 7200 },
+    "tolerance": { "max_deviation_percent": 2.0, "deviation_action": "dispute" }
+  },
+  "input": {
+    "requested_symbol": "BTC",
+    "requested_timestamp": "2026-04-01T12:00:00Z",
+    "available_quotes": [
+      {
+        "quote_id": "q-005-a",
+        "symbol": "BTC",
+        "timestamp": "2026-04-01T11:59:00Z",
+        "source": { "source_id": "binance_spot", "source_type": "exchange_direct", "priority": 0 },
+        "price": 84000.00,
+        "confidence": 1.0,
+        "staleness_seconds": 60,
+        "interpolated": false,
+        "interpolation_method": "none"
+      },
+      {
+        "quote_id": "q-005-b",
+        "symbol": "BTC",
+        "timestamp": "2026-04-01T11:59:30Z",
+        "source": { "source_id": "coinbase_spot", "source_type": "exchange_direct", "priority": 1 },
+        "price": 84800.00,
+        "confidence": 1.0,
+        "staleness_seconds": 30,
+        "interpolated": false,
+        "interpolation_method": "none"
+      }
+    ]
+  },
+  "expected": {
+    "resolved_price": 84000.00,
+    "resolved_source_id": "binance_spot",
+    "resolution_method": "first_valid",
+    "staleness_seconds": 60,
+    "confidence": 1.0,
+    "interpolated": false,
+    "status": "RESOLVED",
+    "dispute": false,
+    "deviation_percent": 0.952,
+    "reason": "Two sources deviate 0.952% (< 2.0% tolerance). Primary source binance_spot selected."
+  }
+}

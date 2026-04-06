@@ -1,0 +1,48 @@
+{
+  "case_id": "PFQ-001",
+  "title": "Primary source available and fresh — direct resolution",
+  "description": "Highest-priority exchange_direct source has a fresh observation within staleness window. Resolution selects it immediately with full confidence.",
+  "policy_overrides": {
+    "staleness": { "max_staleness_seconds": 7200 },
+    "tolerance": { "max_deviation_percent": 2.0 }
+  },
+  "input": {
+    "requested_symbol": "BTC",
+    "requested_timestamp": "2026-04-01T12:00:00Z",
+    "available_quotes": [
+      {
+        "quote_id": "q-001-a",
+        "symbol": "BTC",
+        "timestamp": "2026-04-01T11:59:30Z",
+        "source": { "source_id": "binance_spot", "source_type": "exchange_direct", "priority": 0 },
+        "price": 84250.50,
+        "confidence": 1.0,
+        "staleness_seconds": 30,
+        "interpolated": false,
+        "interpolation_method": "none"
+      },
+      {
+        "quote_id": "q-001-b",
+        "symbol": "BTC",
+        "timestamp": "2026-04-01T11:58:00Z",
+        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
+        "price": 84240.00,
+        "confidence": 0.95,
+        "staleness_seconds": 120,
+        "interpolated": false,
+        "interpolation_method": "none"
+      }
+    ]
+  },
+  "expected": {
+    "resolved_price": 84250.50,
+    "resolved_source_id": "binance_spot",
+    "resolution_method": "first_valid",
+    "staleness_seconds": 30,
+    "confidence": 1.0,
+    "interpolated": false,
+    "status": "RESOLVED",
+    "dispute": false,
+    "reason": "Primary source binance_spot fresh within 7200s staleness window"
+  }
+}

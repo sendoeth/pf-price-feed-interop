@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sendoeth/pf-price-feed-interop/quote_schema.json",
+  "title": "Post Fiat Canonical Price Quote",
+  "description": "Normalized quote schema for cross-producer, cross-auditor price feed interop. Every quote is a single (symbol, timestamp) observation from a named source with confidence metadata.",
+  "type": "object",
+  "required": ["quote_id", "symbol", "timestamp", "source", "price", "confidence"],
+  "properties": {
+    "quote_id": {
+      "type": "string",
+      "description": "Unique identifier for this quote record"
+    },
+    "symbol": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{1,19}$",
+      "description": "Uppercase asset symbol (e.g. BTC, ETH, SOL, LINK)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 observation timestamp in UTC"
+    },
+    "source": {
+      "$ref": "#/$defs/source_descriptor",
+      "description": "Where this price was observed"
+    },
+    "price": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Observed price in USD"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Source reliability confidence (1.0 = exchange direct, 0.5 = interpolated, lower = estimated)"
+    },
+    "staleness_seconds": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Seconds between the requested timestamp and actual observation. 0 = exact match."
+    },
+    "interpolated": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if price was interpolated between two neighboring observations"
+    },
+    "interpolation_method": {
+      "enum": ["none", "linear", "nearest"],
+      "default": "none",
+      "description": "Interpolation method used, if any"
+    },
+    "attestation": {
+      "$ref": "#/$defs/attestation",
+      "description": "Optional hash-chain attestation linking this quote to the previous"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional additional metadata (exchange-specific fields, volume, etc.)"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "source_descriptor": {
+      "type": "object",
+      "required": ["source_id", "source_type"],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "description": "Machine-readable source identifier (e.g. 'yahoo_finance', 'coingecko', 'binance_spot')"
+        },
+        "source_type": {
+          "enum": ["exchange_direct", "aggregator", "api_provider", "manual", "interpolated"],
+          "description": "Category of price source"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Source precedence rank (0 = highest priority)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "attestation": {
+      "type": "object",
+      "required": ["hash", "previous_hash", "sequence_number"],
+      "properties": {
+        "hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of canonical fields: quote_id|symbol|timestamp|source_id|price|confidence"
+        },
+        "previous_hash": {
+          "type": "string",
+          "pattern": "^(0{64}|[a-f0-9]{64})$",
+          "description": "Hash of previous quote in chain. Genesis record uses 64 zeros."
+        },
+        "sequence_number": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonically increasing sequence number within the chain"
+        },
+        "chain_id": {
+          "type": "string",
+          "description": "Identifier for this attestation chain (e.g. producer_id or feed_id)"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

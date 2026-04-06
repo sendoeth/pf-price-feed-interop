@@ -1,0 +1,49 @@
+{
+  "case_id": "PFQ-007",
+  "title": "Interpolation gap exceeds max — fallback to mark_unresolved",
+  "description": "Neighboring observations are too far apart for interpolation (gap > max_gap_seconds). Dispute fallback chain exhausts to mark_unresolved. Tests the terminal failure path.",
+  "policy_overrides": {
+    "staleness": { "max_staleness_seconds": 7200, "stale_action": "interpolate" },
+    "interpolation": { "enabled": true, "method": "linear", "max_gap_seconds": 3600, "confidence_penalty": 0.5 },
+    "dispute": { "fallback_chain": ["interpolate", "mark_unresolved"], "unresolved_action": "skip_signal" }
+  },
+  "input": {
+    "requested_symbol": "SOL",
+    "requested_timestamp": "2026-04-01T12:00:00Z",
+    "available_quotes": [
+      {
+        "quote_id": "q-007-a",
+        "symbol": "SOL",
+        "timestamp": "2026-04-01T08:00:00Z",
+        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
+        "price": 124.50,
+        "confidence": 0.95,
+        "staleness_seconds": 14400,
+        "interpolated": false,
+        "interpolation_method": "none"
+      },
+      {
+        "quote_id": "q-007-b",
+        "symbol": "SOL",
+        "timestamp": "2026-04-01T16:00:00Z",
+        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
+        "price": 127.80,
+        "confidence": 0.95,
+        "staleness_seconds": 14400,
+        "interpolated": false,
+        "interpolation_method": "none"
+      }
+    ]
+  },
+  "expected": {
+    "resolved_price": null,
+    "resolved_source_id": null,
+    "resolution_method": "mark_unresolved",
+    "staleness_seconds": null,
+    "confidence": 0.0,
+    "interpolated": false,
+    "status": "UNRESOLVED",
+    "dispute": false,
+    "reason": "All sources stale. Interpolation gap 28800s exceeds max 3600s. Fallback chain exhausted to mark_unresolved."
+  }
+}

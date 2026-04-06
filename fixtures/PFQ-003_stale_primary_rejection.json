@@ -1,0 +1,48 @@
+{
+  "case_id": "PFQ-003",
+  "title": "All sources stale — rejection via stale_action=reject",
+  "description": "Policy configured with stale_action=reject. Both available sources exceed staleness window. Resolution rejects entirely — no fallback, no interpolation.",
+  "policy_overrides": {
+    "staleness": { "max_staleness_seconds": 3600, "stale_action": "reject" },
+    "tolerance": { "max_deviation_percent": 2.0 }
+  },
+  "input": {
+    "requested_symbol": "SOL",
+    "requested_timestamp": "2026-04-01T12:00:00Z",
+    "available_quotes": [
+      {
+        "quote_id": "q-003-a",
+        "symbol": "SOL",
+        "timestamp": "2026-04-01T06:00:00Z",
+        "source": { "source_id": "binance_spot", "source_type": "exchange_direct", "priority": 0 },
+        "price": 125.40,
+        "confidence": 1.0,
+        "staleness_seconds": 21600,
+        "interpolated": false,
+        "interpolation_method": "none"
+      },
+      {
+        "quote_id": "q-003-b",
+        "symbol": "SOL",
+        "timestamp": "2026-04-01T07:30:00Z",
+        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
+        "price": 126.10,
+        "confidence": 0.95,
+        "staleness_seconds": 16200,
+        "interpolated": false,
+        "interpolation_method": "none"
+      }
+    ]
+  },
+  "expected": {
+    "resolved_price": null,
+    "resolved_source_id": null,
+    "resolution_method": "rejected",
+    "staleness_seconds": null,
+    "confidence": 0.0,
+    "interpolated": false,
+    "status": "UNRESOLVED",
+    "dispute": false,
+    "reason": "All sources stale. stale_action=reject. binance_spot: 21600s > 3600s. coingecko: 16200s > 3600s."
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "case_id": "PFQ-002",
+  "title": "Primary source stale — fallback to secondary source",
+  "description": "Highest-priority source exceeds staleness window. Resolution cascades to next source in hierarchy per stale_action=fallback_source.",
+  "policy_overrides": {
+    "staleness": { "max_staleness_seconds": 7200, "stale_action": "fallback_source" },
+    "tolerance": { "max_deviation_percent": 2.0 }
+  },
+  "input": {
+    "requested_symbol": "ETH",
+    "requested_timestamp": "2026-04-01T12:00:00Z",
+    "available_quotes": [
+      {
+        "quote_id": "q-002-a",
+        "symbol": "ETH",
+        "timestamp": "2026-04-01T08:00:00Z",
+        "source": { "source_id": "binance_spot", "source_type": "exchange_direct", "priority": 0 },
+        "price": 1820.00,
+        "confidence": 1.0,
+        "staleness_seconds": 14400,
+        "interpolated": false,
+        "interpolation_method": "none"
+      },
+      {
+        "quote_id": "q-002-b",
+        "symbol": "ETH",
+        "timestamp": "2026-04-01T11:55:00Z",
+        "source": { "source_id": "coingecko", "source_type": "aggregator", "priority": 1 },
+        "price": 1835.25,
+        "confidence": 0.95,
+        "staleness_seconds": 300,
+        "interpolated": false,
+        "interpolation_method": "none"
+      }
+    ]
+  },
+  "expected": {
+    "resolved_price": 1835.25,
+    "resolved_source_id": "coingecko",
+    "resolution_method": "fallback_source",
+    "staleness_seconds": 300,
+    "confidence": 0.95,
+    "interpolated": false,
+    "status": "RESOLVED",
+    "dispute": false,
+    "reason": "Primary source binance_spot stale (14400s > 7200s). Fallback to coingecko (300s staleness, within window)."
+  }
+}
